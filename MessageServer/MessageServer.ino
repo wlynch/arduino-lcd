@@ -1,20 +1,8 @@
 /*
- Chat  Server
- 
- A simple server that distributes any incoming messages to all
- connected clients.  To use telnet to  your device's IP address and type.
- You can see the client's input in the serial monitor as well.
- Using an Arduino Wiznet Ethernet shield. 
- 
- Circuit:
- * Ethernet shield attached to pins 10, 11, 12, 13
- * Analog inputs attached to pins A0 through A5 (optional)
- 
- created 18 Dec 2009
- by David A. Mellis
- modified 9 Apr 2012
- by Tom Igoe
- 
+ * Message Server
+ *
+ * Allows for reading and setting of a message over a network through telnet.
+ *
  */
 
 #include <SPI.h>
@@ -46,7 +34,6 @@ void setup() {
     ; // wait for serial port to connect. Needed for Leonardo only
   }
 
-
   Serial.print("Chat server address:");
   Serial.println(Ethernet.localIP());
 }
@@ -60,8 +47,10 @@ void loop()
     // read bytes from the incoming client and write them back
     // to any clients connected to the server:
     buffer=getInput(client);
-    server.write(buffer);
     
+    server.write("Response: ");
+    server.write(buffer);
+    server.write("\n");
     free(buffer);
   }
 }
