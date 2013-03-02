@@ -25,7 +25,7 @@ boolean alreadyConnected = false; // whether or not the client was connected pre
 
 // globals
 char message[80];
-char password[64]="hi\0";
+char password[64]="\0";
 
 void setup() {
   // initialize the ethernet device
@@ -92,7 +92,7 @@ char *getInput(EthernetClient client) {
   char *buffer=(char *)calloc(256,sizeof(char));
   char c = client.read();
   int i=0;
-  Serial.println((int)c);
+  
   while ((c > 0) && (c != '\n')) {
     buffer[i]=c;
     i++;
