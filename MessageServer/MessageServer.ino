@@ -51,27 +51,30 @@ void loop()
     // to any clients connected to the server:
     buffer=getInput(client);
     
-    if (strcmp(buffer,"get")==0){
-      server.println(message);
+    if (strcmp(buffer,"get") == 0) {
+      client.println(message);
+    } else if (strcmp(buffer,"exit") == 0) {
+      client.println("goodbye");
+      client.stop();
     } else {
       char *tok=strtok(buffer," \n\0");
-      if (strcmp(tok,"set")==0){
+      if (strcmp(tok,"set") == 0) {
         tok=strtok(NULL,"\0\n");
         strcpy(message,tok);
         strcat(message,"\0");
-        server.println("message set");
+        client.println("message set");
       } else {
-        if (strcmp(buffer,"")!=0){
-          server.print("Unknown Command: [");
-          server.print(buffer);
-          server.print("]\n");
+        if (strcmp(buffer,"") != 0) {
+          client.print("Unknown Command: [");
+          client.print(buffer);
+          client.print("]\n");
         } else {
-          server.println();
+          client.println();
         }
       } 
     }
     free(buffer);
-    server.print("$> ");
+    client.print("$> ");
   }
 }
 
