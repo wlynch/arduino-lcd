@@ -25,6 +25,7 @@ boolean alreadyConnected = false; // whether or not the client was connected pre
 
 // globals
 char message[80];
+char password[64]="hi\0";
 
 void setup() {
   // initialize the ethernet device
@@ -41,12 +42,16 @@ void setup() {
   Serial.println(Ethernet.localIP());
 }
 
-void loop()
-{
+void loop() {
   char *buffer;
   // if an incoming client connects, there will be bytes available to read:
   EthernetClient client = server.available();
   if (client == true) {
+    if (alreadyConnected == false) {
+      client.println("hello there!");
+      alreadyConnected=true;
+    }
+    
     // read bytes from the incoming client and write them back
     // to any clients connected to the server:
     buffer=getInput(client);
@@ -56,13 +61,18 @@ void loop()
     } else if (strcmp(buffer,"exit") == 0) {
       client.println("goodbye");
       client.stop();
+    } else if (strcmp(buffer,"password") == 0) {
+      set_password(client);
     } else {
       char *tok=strtok(buffer," \n\0");
       if (strcmp(tok,"set") == 0) {
-        tok=strtok(NULL,"\0\n");
-        strcpy(message,tok);
-        strcat(message,"\0");
-        client.println("message set");
+        /* Set message */
+        if (check_password(client) == 0) {
+          tok=strtok(NULL,"\0\n");
+          strcpy(message,tok);
+          strcat(message,"\0");
+          client.println("message set");
+        } 
       } else {
         if (strcmp(buffer,"") != 0) {
           client.print("Unknown Command: [");
@@ -78,11 +88,11 @@ void loop()
   }
 }
 
-char *getInput(EthernetClient client){
+char *getInput(EthernetClient client) {
   char *buffer=(char *)calloc(256,sizeof(char));
   char c = client.read();
   int i=0;
-  
+  Serial.println((int)c);
   while ((c > 0) && (c != '\n')) {
     buffer[i]=c;
     i++;
@@ -94,3 +104,50 @@ char *getInput(EthernetClient client){
   client.flush();
   return buffer;  
 }
+
+int check_password(EthernetClient client) {
+  int i,retval;
+  char *attempt;
+  /* See if password is set */
+  if (strlen(password) == 0) {
+    return 0;
+  }
+
+  /* Password check */
+  for(i=0; i<3; i++){
+    client.print("Password: ");
+    while(!client.available()) {} // Wait for user to input password
+    attempt=getInput(client);
+    retval=strcmp(attempt,password);
+    free(attempt);
+    if (retval == 0) {
+      return 0;
+    } else {
+      client.println("Authentication failed");
+    }
+  }
+  return 1;
+}
+
+void set_password(EthernetClient client) {
+  char *p1,*p2;
+  
+  if (check_password(client) == 0) {
+    client.print("Enter new password: ");
+    while (!client.available()) {}
+    p1=getInput(client);
+    client.print("Enter new password again: ");
+    while (!client.available()) {}
+    p2=getInput(client);
+    if (strcmp(p1,p2) == 0) {
+      strcpy(password,p1);
+      strcat(password,"\0");
+      client.println("Password successfully set");
+    } else {
+      client.println("Passwords do not match");
+    }
+    free(p1);
+    free(p2);
+  } 
+}
+  
