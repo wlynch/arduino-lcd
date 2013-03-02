@@ -65,6 +65,8 @@ void loop()
           server.print("Unknown Command: [");
           server.print(buffer);
           server.print("]\n");
+        } else {
+          server.println();
         }
       } 
     }
@@ -84,7 +86,8 @@ char *getInput(EthernetClient client){
     c=client.read();
   }
   /* Remove trailing \n and flush the rest of the client */
-  buffer[i-1]='\0';
+  if (i > 0)
+    buffer[i-1]='\0';
   client.flush();
   return buffer;  
 }
