@@ -106,7 +106,7 @@ char *getInput(EthernetClient client) {
   char c = client.read();
   int i=0;
   
-  while ((c > 0) && (c != '\n')) {
+  while ((c > 0) && (c != '\n') && (i <= 84)) {
     buffer[i]=c;
     i++;
     c=client.read();
