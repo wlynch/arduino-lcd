@@ -14,14 +14,16 @@
 // gateway and subnet are optional:
 byte mac[] = { 
   0x90, 0xA2, 0xDA, 0x0D, 0x8B, 0x2F };
-IPAddress ip(172,16,6,72);
-IPAddress gateway(172,16,6,65);
-IPAddress subnet(255,255,255,224);
-
+IPAddress ip(192,168,1,21);
+IPAddress gateway(192,168,1,1);
+IPAddress subnet(255,255,255,0);
 
 // telnet defaults to port 23
 EthernetServer server(23);
 boolean alreadyConnected = false; // whether or not the client was connected previously
+
+// globals
+char message[80];
 
 void setup() {
   // initialize the ethernet device
@@ -33,7 +35,7 @@ void setup() {
    while (!Serial) {
     ; // wait for serial port to connect. Needed for Leonardo only
   }
-
+  message[0]='\0';
   Serial.print("Chat server address:");
   Serial.println(Ethernet.localIP());
 }
@@ -47,11 +49,28 @@ void loop()
     // read bytes from the incoming client and write them back
     // to any clients connected to the server:
     buffer=getInput(client);
-    
-    server.write("Response: ");
-    server.write(buffer);
-    server.write("\n");
+    Serial.print("[");
+    Serial.print(buffer);
+    Serial.println("]");
+    if (strcmp(buffer,"get")==0){
+      Serial.println("I GOT SOMETHING");
+    } else {
+      char *tok=strtok(buffer," \n\0");
+      Serial.print("[");
+      Serial.print(tok);
+      Serial.println("]");
+      if (strcmp(tok,"set")==0){
+        Serial.println("SETTING A MESSAGE");
+      } else {
+        if (strcmp(buffer,"")!=0){
+          server.print("Unknown Command: [");
+          server.print(buffer);
+          server.print("]\n");
+        }
+      } 
+    }
     free(buffer);
+    server.print("$> ");
   }
 }
 
@@ -60,16 +79,12 @@ char *getInput(EthernetClient client){
   char c = client.read();
   int i=0;
   
-  while (c != -1){
-    Serial.print(c);
+  while ((c > 0) && (c != '\n')) {
     buffer[i]=c;
     i++;
     c=client.read();
   }
-  buffer[i]='\0';
-  strtok(buffer,"\n");
-  Serial.print("[");
-  Serial.print(buffer);
-  Serial.print("]");
+  buffer[i-1]='\0';
+  client.flush();
   return buffer;  
 }
