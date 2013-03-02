@@ -8,6 +8,7 @@
 #include <SPI.h>
 #include <Ethernet.h>
 #include <string.h>
+#include <ctype.h>
 
 // Enter a MAC address and IP address for your controller below.
 // The IP address will be dependent on your local network.
@@ -52,8 +53,10 @@ void loop()
     Serial.print("[");
     Serial.print(buffer);
     Serial.println("]");
+    
     if (strcmp(buffer,"get")==0){
       Serial.println("I GOT SOMETHING");
+      server.println(message);
     } else {
       char *tok=strtok(buffer," \n\0");
       Serial.print("[");
@@ -61,6 +64,11 @@ void loop()
       Serial.println("]");
       if (strcmp(tok,"set")==0){
         Serial.println("SETTING A MESSAGE");
+        tok=strtok(NULL,"\0\n");
+        strcpy(message,tok);
+        strcat(message,"\0");
+        Serial.println(message);
+        server.println("message set");
       } else {
         if (strcmp(buffer,"")!=0){
           server.print("Unknown Command: [");
@@ -75,7 +83,7 @@ void loop()
 }
 
 char *getInput(EthernetClient client){
-  char *buffer=(char *)malloc(sizeof(char)*256);
+  char *buffer=(char *)calloc(256,sizeof(char));
   char c = client.read();
   int i=0;
   
@@ -84,6 +92,7 @@ char *getInput(EthernetClient client){
     i++;
     c=client.read();
   }
+  /* Remove trailing \n and flush the rest of the client */
   buffer[i-1]='\0';
   client.flush();
   return buffer;  
