@@ -7,8 +7,10 @@
 
 #include <SPI.h>
 #include <Ethernet.h>
+#include <LiquidCrystal.h>
 #include <string.h>
 #include <ctype.h>
+
 
 // Enter a MAC address and IP address for your controller below.
 // The IP address will be dependent on your local network.
@@ -23,21 +25,29 @@ IPAddress subnet(255,255,255,0);
 EthernetServer server(23);
 boolean alreadyConnected = false; // whether or not the client was connected previously
 
+// lcd init
+LiquidCrystal lcd(7,8,3,4,5,6);
+
 // globals
-char message[80];
+char message[80]="test123\0";
 char password[64]="\0";
 
-void setup() {
+void setup() {  
+  // start lcd 
+  lcd.begin(20,4);
+  lcd.print(message);
+  
   // initialize the ethernet device
   Ethernet.begin(mac, ip);
   // start listening for clients
   server.begin();
- // Open serial communications and wait for port to open:
+  
+  // Open serial communications and wait for port to open:
   Serial.begin(9600);
-   while (!Serial) {
+  while (!Serial) {
     ; // wait for serial port to connect. Needed for Leonardo only
   }
-  message[0]='\0';
+  
   Serial.print("Chat server address:");
   Serial.println(Ethernet.localIP());
 }
@@ -72,6 +82,9 @@ void loop() {
           strcpy(message,tok);
           strcat(message,"\0");
           client.println("message set");
+          lcd.begin(20,4);
+          lcd.clear();
+          lcd.print(message);
         } 
       } else {
         if (strcmp(buffer,"") != 0) {
