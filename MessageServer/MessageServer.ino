@@ -36,7 +36,7 @@ void setup() {
   // start lcd 
   lcd.begin(20,4);
   lcd.print(message);
-  
+    
   // initialize the ethernet device
   Ethernet.begin(mac, ip);
   // start listening for clients
