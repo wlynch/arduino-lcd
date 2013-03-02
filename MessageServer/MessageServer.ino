@@ -50,24 +50,15 @@ void loop()
     // read bytes from the incoming client and write them back
     // to any clients connected to the server:
     buffer=getInput(client);
-    Serial.print("[");
-    Serial.print(buffer);
-    Serial.println("]");
     
     if (strcmp(buffer,"get")==0){
-      Serial.println("I GOT SOMETHING");
       server.println(message);
     } else {
       char *tok=strtok(buffer," \n\0");
-      Serial.print("[");
-      Serial.print(tok);
-      Serial.println("]");
       if (strcmp(tok,"set")==0){
-        Serial.println("SETTING A MESSAGE");
         tok=strtok(NULL,"\0\n");
         strcpy(message,tok);
         strcat(message,"\0");
-        Serial.println(message);
         server.println("message set");
       } else {
         if (strcmp(buffer,"")!=0){
