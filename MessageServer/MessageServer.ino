@@ -72,7 +72,7 @@ void loop() {
       client.println("goodbye");
       client.stop();
     } else if (strcmp(buffer,"nextbus") == 0) {
-      nextbus();
+      nextbus(client);
     } else if (strcmp(buffer,"password") == 0) {
       set_password(client);
     } else {
@@ -187,8 +187,7 @@ int nextbus(EthernetClient main){
   
   //   if there are incoming bytes available 
   // from the server, read them and print them:
-  char message[512]="\0";
-  int i=0, offset=10, row=0;
+  int i=0, offset=10, row=0, col=0;
   Serial.println(client.available());
   if (client.available()) {
     while (client.connected()) {
@@ -200,19 +199,29 @@ int nextbus(EthernetClient main){
       Serial.print(" ");
       Serial.print(row);
       Serial.print(" ");
+      Serial.print(col);
+      Serial.print(" ");
       Serial.println(offset);
       if (c == 10){
+        Serial.println("10 move");
         row++;
+        col=0;
         if (row>=offset) {
           lcd.setCursor(0,row-offset);
         }
       } else {
         if (row >= offset){
+          if (col > 20) {
+            Serial.println("col move");
+            row++;
+            col=0;
+            lcd.setCursor(0,row-offset);
+          }
           lcd.print(c);
+          col++;
         }
       }
       
-      message[i]=c;
       i++;
     }
     Serial.println("disconnected");
