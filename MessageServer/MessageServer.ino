@@ -31,6 +31,7 @@ LiquidCrystal lcd(7,8,3,4,5,6);
 // globals
 char message[80]="test123\0";
 char password[64]="\0";
+unsigned long timeout=60000, currtime=0, oldtime=0;
 
 void setup() {  
   // start lcd 
@@ -54,6 +55,10 @@ void setup() {
 
 void loop() {
   char *buffer;
+  
+  /* Refresh display every timeout/1000 secs */
+  refresh_display(0);
+  
   // if an incoming client connects, there will be bytes available to read:
   EthernetClient client = server.available();
   if (client == true) {
@@ -72,7 +77,7 @@ void loop() {
       client.println("goodbye");
       client.stop();
     } else if (strcmp(buffer,"nextbus") == 0) {
-      nextbus(client);
+      nextbus();
     } else if (strcmp(buffer,"password") == 0) {
       set_password(client);
     } else {
@@ -83,10 +88,8 @@ void loop() {
           tok=strtok(NULL,"\0\n");
           strcpy(message,tok);
           strcat(message,"\0");
+          refresh_display(1);
           client.println("message set");
-          lcd.begin(20,4);
-          lcd.clear();
-          lcd.print(message);
         } 
       } else {
         if (strcmp(buffer,"") != 0) {
@@ -103,6 +106,7 @@ void loop() {
   }
 }
 
+/* Get complete line of input from the client */
 char *getInput(EthernetClient client) {
   char *buffer=(char *)calloc(256,sizeof(char));
   char c = client.read();
@@ -117,9 +121,27 @@ char *getInput(EthernetClient client) {
   if (i > 0)
     buffer[i-1]='\0';
   client.flush();
-  return buffer;  
+  return buffer;
 }
 
+/* Refresh LCD display based on message */
+void refresh_display(int force) {
+  currtime=millis();
+  /* Refresh display if timeout is met or millis timer reset */
+  if ( (force != 0) ||(currtime-oldtime) >= timeout || (currtime < oldtime)) {
+    lcd.clear();
+    if (strcmp(message,"!nextbus") == 0) {
+      nextbus();
+    } else {
+      lcd.print(message); 
+    }
+    oldtime=currtime;
+  }
+}
+
+/* Simple password check. 
+ * If password length is 0, it is treated like there is no password.
+ */
 int check_password(EthernetClient client) {
   int i,retval;
   char *attempt;
@@ -144,6 +166,7 @@ int check_password(EthernetClient client) {
   return 1;
 }
 
+/* Function to set password. Requires user to input 2x to set */
 void set_password(EthernetClient client) {
   char *p1,*p2;
   
@@ -166,7 +189,8 @@ void set_password(EthernetClient client) {
   } 
 }
 
-int nextbus(EthernetClient main){
+/* Prints nextbus information for Hill Center bus stop to the LCD */
+int nextbus(){
   EthernetClient client;
   IPAddress nb_server(71,19,144,28); // vverma.net
   
@@ -211,7 +235,7 @@ int nextbus(EthernetClient main){
         }
       } else {
         if (row >= offset){
-          if (col > 20) {
+          if (col > 19) {
             Serial.println("col move");
             row++;
             col=0;
