@@ -76,8 +76,8 @@ void loop() {
     } else if (strcmp(buffer,"exit") == 0) {
       client.println("goodbye");
       client.stop();
-    } else if (strcmp(buffer,"nextbus") == 0) {
-      nextbus();
+    } else if (strcmp(buffer,"refresh") == 0) {
+      refresh_display(1);
     } else if (strcmp(buffer,"password") == 0) {
       set_password(client);
     } else {
@@ -216,18 +216,8 @@ int nextbus(){
   if (client.available()) {
     while (client.connected()) {
       char c=client.read();
-      Serial.print("[");
-      Serial.print(c);
-      Serial.print("] ");
-      Serial.print((int)c);
-      Serial.print(" ");
-      Serial.print(row);
-      Serial.print(" ");
-      Serial.print(col);
-      Serial.print(" ");
-      Serial.println(offset);
+      
       if (c == 10){
-        Serial.println("10 move");
         row++;
         col=0;
         if (row>=offset) {
@@ -235,8 +225,7 @@ int nextbus(){
         }
       } else {
         if (row >= offset){
-          if (col > 19) {
-            Serial.println("col move");
+          if ((col > 19) && (col != ' ')) {
             row++;
             col=0;
             lcd.setCursor(0,row-offset);
