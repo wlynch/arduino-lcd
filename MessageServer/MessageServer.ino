@@ -17,7 +17,7 @@
 // gateway and subnet are optional:
 byte mac[] = { 
   0x90, 0xA2, 0xDA, 0x0D, 0x8B, 0x2F };
-IPAddress ip(192,168,1,21);
+IPAddress ip(192,168,1,33);
 IPAddress gateway(192,168,1,1);
 IPAddress subnet(255,255,255,0);
 
@@ -71,6 +71,8 @@ void loop() {
     } else if (strcmp(buffer,"exit") == 0) {
       client.println("goodbye");
       client.stop();
+    } else if (strcmp(buffer,"nextbus") == 0) {
+      nextbus();
     } else if (strcmp(buffer,"password") == 0) {
       set_password(client);
     } else {
@@ -162,5 +164,61 @@ void set_password(EthernetClient client) {
     free(p1);
     free(p2);
   } 
+}
+
+int nextbus(EthernetClient main){
+  EthernetClient client;
+  IPAddress nb_server(71,19,144,28); // vverma.net
+  
+  // give the Ethernet shield a second to initialize:
+  Serial.println("connecting...");
+  
+  // if you get a connection, report back via serial:
+  if (client.connect(nb_server, 80)) {
+    Serial.println("connected");
+    // Make a HTTP request:
+    client.println("GET /nextbus/nextbus.php?s=hill&android=1 HTTP/1.0");
+    client.println();
+    while (!client.available()) {}
+  } else {
+    Serial.println("connection failed");
+    return 1;
+  }
+  
+  //   if there are incoming bytes available 
+  // from the server, read them and print them:
+  char message[512]="\0";
+  int i=0, offset=10, row=0;
+  Serial.println(client.available());
+  if (client.available()) {
+    while (client.connected()) {
+      char c=client.read();
+      Serial.print("[");
+      Serial.print(c);
+      Serial.print("] ");
+      Serial.print((int)c);
+      Serial.print(" ");
+      Serial.print(row);
+      Serial.print(" ");
+      Serial.println(offset);
+      if (c == 10){
+        row++;
+        if (row>=offset) {
+          lcd.setCursor(0,row-offset);
+        }
+      } else {
+        if (row >= offset){
+          lcd.print(c);
+        }
+      }
+      
+      message[i]=c;
+      i++;
+    }
+    Serial.println("disconnected");
+  }
+  client.stop();
+  Serial.println("done");
+  return 0;
 }
   

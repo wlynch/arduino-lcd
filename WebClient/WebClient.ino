@@ -21,21 +21,13 @@
 // Newer Ethernet shields have a MAC address printed on a sticker on the shield
 byte mac[] = { 
   0x90, 0xA2, 0xDA, 0x0D, 0x8B, 0x2F };
-IPAddress ip(192,168,1,23);
+IPAddress ip(192,168,1,31);
 IPAddress gateway(192,168,1,1);
 IPAddress subnet(255,255,255,0);
 
-IPAddress server(71,19,144,28); // vverma.net
 //IPAddress server(165,230,205,70); //wlyn.ch
 
 LiquidCrystal lcd(7,8,3,4,5,6);
-
-// Initialize the Ethernet client library
-// with the IP address and port of the server 
-// that you want to connect to (port 80 is default for HTTP):
-EthernetClient client;
-
-int row=0;
 
 void setup() {
  // Open serial communications and wait for port to open:
@@ -45,22 +37,12 @@ void setup() {
   
   Ethernet.begin(mac,ip);
 
-  // give the Ethernet shield a second to initialize:
-  Serial.println("connecting...");
-  
-  // if you get a connection, report back via serial:
-  if (client.connect(server, 80)) {
-    Serial.println("connected");
-    // Make a HTTP request:
-    client.println("GET /nextbus/nextbus.php?s=hill&android=1 HTTP/1.0");
-    client.println();
-  } else {
-    Serial.println("connection failed");
-  }
+  nextbus();
 }
 
 void loop()
 {
+  /*
   //   if there are incoming bytes available 
   // from the server, read them and print them:
   char message[512]="\0";
@@ -101,6 +83,61 @@ void loop()
     for(;;)
       ;
   }
+  */
+}
+
+void nextbus(){
+  EthernetClient client;
+  IPAddress server(71,19,144,28); // vverma.net
+  
+  // give the Ethernet shield a second to initialize:
+  Serial.println("connecting...");
+  
+  // if you get a connection, report back via serial:
+  if (client.connect(server, 80)) {
+    Serial.println("connected");
+    // Make a HTTP request:
+    client.println("GET /nextbus/nextbus.php?s=hill&android=1 HTTP/1.0");
+    client.println();
+    while (!client.available()) {}
+  } else {
+    Serial.println("connection failed");
+  }
+  
+  //   if there are incoming bytes available 
+  // from the server, read them and print them:
+  char message[512]="\0";
+  int i=0, offset=10, row=0;
+  Serial.println(client.available());
+  if (client.available()) {
+    while (client.connected()) {
+      char c=client.read();
+      Serial.print("[");
+      Serial.print(c);
+      Serial.print("] ");
+      Serial.print((int)c);
+      Serial.print(" ");
+      Serial.print(row);
+      Serial.print(" ");
+      Serial.println(offset);
+      if (c == 10){
+        row++;
+        if (row>=offset) {
+          lcd.setCursor(0,row-offset);
+        }
+      } else {
+        if (row >= offset){
+          lcd.print(c);
+        }
+      }
+      
+      message[i]=c;
+      i++;
+    }
+    Serial.println("disconnected");
+  }
+  client.stop();
+  Serial.println("done");
 }
 
 char *getInput(EthernetClient client) {
