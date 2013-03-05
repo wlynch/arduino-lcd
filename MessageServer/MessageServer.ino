@@ -74,6 +74,8 @@ void loop() {
       refresh_display(1);
     } else if (strcmp(buffer,"password") == 0) {
       set_password(client);
+    } else if (strcmp(buffer,"help") == 0) {
+      help(client);    
     } else {
       char *tok=strtok(buffer," \n\0");
       if (strcmp(tok,"set") == 0) {
@@ -190,7 +192,6 @@ void set_password(EthernetClient client) {
 /* Prints nextbus information for Hill Center bus stop to the LCD */
 int nextbus(){
   EthernetClient client;
-  //IPAddress nb_server(71,19,144,28); // vverma.net
   IPAddress nb_server(165,230,205,70); //wlyn.ch
   // give the Ethernet shield a second to initialize:
   Serial.println("connecting...");
@@ -247,5 +248,18 @@ int nextbus(){
   client.stop();
   Serial.println("done");
   return 0;
+}
+  
+void help(EthernetClient client) {
+  client.println("Commands:");
+  client.println("\nget");
+  client.println("  Get the current message/command");
+  client.println("\nset <message>/<command>");
+  client.println("  Set a message or command to the display. Commands supported:");
+  client.println("    !nextbus : Get nextbus information for the Hill Center bus stop.");
+  client.println("\nrefresh");
+  client.println("  Manually refresh the display on the lcd. Helpful for updating live information.");
+  client.println("\npassword");
+  client.println("  Set a password for setting messages on the device. By default, there is no password set.");
 }
   
