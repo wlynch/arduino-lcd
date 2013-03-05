@@ -23,13 +23,12 @@ IPAddress subnet(255,255,255,0);
 
 // telnet defaults to port 23
 EthernetServer server(23);
-boolean alreadyConnected = false; // whether or not the client was connected previously
 
 // lcd init
 LiquidCrystal lcd(7,8,3,4,5,6);
 
 // globals
-char message[80]="test123\0";
+char message[80]="Welcome!\0";
 char password[64]="\0";
 unsigned long timeout=60000, currtime=0, oldtime=0;
 
@@ -61,12 +60,7 @@ void loop() {
   
   // if an incoming client connects, there will be bytes available to read:
   EthernetClient client = server.available();
-  if (client == true) {
-    if (alreadyConnected == false) {
-      client.println("hello there!");
-      alreadyConnected=true;
-    }
-    
+  if (client == true) { 
     // read bytes from the incoming client and write them back
     // to any clients connected to the server:
     buffer=getInput(client);
@@ -88,8 +82,11 @@ void loop() {
           tok=strtok(NULL,"\0\n");
           strcpy(message,tok);
           strcat(message,"\0");
-          refresh_display(1);
-          client.println("message set");
+          if (refresh_display(1) == 0) {
+            client.println("Message set.");
+          } else {
+            client.println("Error setting message. Please try again.");
+          }
         } 
       } else {
         if (strcmp(buffer,"") != 0) {
@@ -125,18 +122,19 @@ char *getInput(EthernetClient client) {
 }
 
 /* Refresh LCD display based on message */
-void refresh_display(int force) {
+int refresh_display(int force) {
   currtime=millis();
   /* Refresh display if timeout is met or millis timer reset */
   if ( (force != 0) ||(currtime-oldtime) >= timeout || (currtime < oldtime)) {
     lcd.clear();
     if (strcmp(message,"!nextbus") == 0) {
-      nextbus();
+      return nextbus();
     } else {
       lcd.print(message); 
     }
     oldtime=currtime;
   }
+  return 0;
 }
 
 /* Simple password check. 
@@ -192,8 +190,8 @@ void set_password(EthernetClient client) {
 /* Prints nextbus information for Hill Center bus stop to the LCD */
 int nextbus(){
   EthernetClient client;
-  IPAddress nb_server(71,19,144,28); // vverma.net
-  
+  //IPAddress nb_server(71,19,144,28); // vverma.net
+  IPAddress nb_server(165,230,205,70); //wlyn.ch
   // give the Ethernet shield a second to initialize:
   Serial.println("connecting...");
   
@@ -201,7 +199,7 @@ int nextbus(){
   if (client.connect(nb_server, 80)) {
     Serial.println("connected");
     // Make a HTTP request:
-    client.println("GET /nextbus/nextbus.php?s=hill&android=1 HTTP/1.0");
+    client.println("GET /nextbus/nextbus-simple.php?s=hill&android=1 HTTP/1.0");
     client.println();
     while (!client.available()) {}
   } else {
@@ -218,17 +216,24 @@ int nextbus(){
       char c=client.read();
       
       if (c == 10){
-        row++;
-        col=0;
-        if (row>=offset) {
-          lcd.setCursor(0,row-offset);
+        if (row >= offset) {
+          if (col > 10) {
+            row++;
+            col=0;
+            lcd.setCursor(col,row-offset);
+          } else {
+            lcd.print(" ");
+            col++;
+          }
+        } else {
+          row++;
         }
       } else {
         if (row >= offset){
           if ((col > 19) && (col != ' ')) {
             row++;
             col=0;
-            lcd.setCursor(0,row-offset);
+            lcd.setCursor(col,row-offset);
           }
           lcd.print(c);
           col++;
