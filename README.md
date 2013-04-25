@@ -19,5 +19,5 @@ To Do
 
 - Possible alternative: Swap arduino w/ pi?
 
--Hi
+- Hi my name is robert
 
