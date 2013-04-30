@@ -30,7 +30,7 @@ LiquidCrystal lcd(7,8,3,4,5,6);
 // globals
 char message[80]="Welcome!\0";
 char password[64]="\0";
-unsigned long timeout=60000, currtime=0, oldtime=0;
+unsigned long timeout=10000, currtime=0, oldtime=0;
 
 void setup() {  
   // start lcd 
@@ -125,16 +125,27 @@ char *getInput(EthernetClient client) {
 
 /* Refresh LCD display based on message */
 int refresh_display(int force) {
+  Serial.print(oldtime);
+  Serial.print(" ");
+  Serial.println(currtime);
   currtime=millis();
   /* Refresh display if timeout is met or millis timer reset */
   if ( (force != 0) ||(currtime-oldtime) >= timeout || (currtime < oldtime)) {
+    Serial.print("refreshing! ");
+    Serial.print(force);
+    Serial.print(" ");
+    Serial.print(oldtime);
+    Serial.print(" ");
+    Serial.print(currtime);
+    Serial.print(" ");
+    Serial.print(timeout);
     lcd.clear();
+    oldtime=currtime;
     if (strcmp(message,"!nextbus") == 0) {
       return nextbus();
     } else {
       lcd.print(message); 
     }
-    oldtime=currtime;
   }
   return 0;
 }
