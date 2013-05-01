@@ -17,7 +17,7 @@
 // gateway and subnet are optional:
 byte mac[] = { 
   0x90, 0xA2, 0xDA, 0x0D, 0x8B, 0x2F };
-IPAddress ip(192,168,1,42);
+IPAddress ip(192,168,1,49);
 IPAddress gateway(192,168,1,1);
 IPAddress subnet(255,255,255,0);
 
@@ -30,7 +30,7 @@ LiquidCrystal lcd(7,8,3,4,5,6);
 // globals
 char message[80]="Welcome!\0";
 char password[64]="\0";
-unsigned long timeout=10000, currtime=0, oldtime=0;
+unsigned long timeout=60000, currtime=0, oldtime=0;
 
 void setup() {  
   // start lcd 
@@ -134,6 +134,8 @@ int refresh_display(int force) {
       return nextbus();
     } if (strcmp(message,"!twitter") == 0) {
       return twitter();
+    } if (strcmp(message,"!rusoc") == 0) {
+      return rusoc();
     } else {
       lcd.print(message); 
     }
@@ -220,7 +222,7 @@ int nextbus(){
       
       if (c == 10){
         if (row >= offset) {
-          if (col > 10) {
+          if (col > 0) {
             row++;
             col=0;
             lcd.setCursor(col,row-offset);
@@ -296,12 +298,12 @@ int twitter() {
         if (readingTweet) {
           if (inChar != '<') {
             if ((inChar != '>') || (i != 0)) {
-            tweet += inChar;
-            if (i < 80) {
-              lcd.setCursor(i%20,i/20);
-              lcd.print(inChar);
-              i++;
-            }
+              tweet += inChar;
+              if (i < 80) {
+                lcd.setCursor(i%20,i/20);
+                lcd.print(inChar);
+                i++;
+              }
             }
           } 
           else {
@@ -318,6 +320,63 @@ int twitter() {
   }
   // close the connection to the server:
   return 0;   
+}
+
+int rusoc() {
+  EthernetClient client;
+  IPAddress t_server(165,230,205,70); 
+  int i=0, offset=8, row=0, col=0;
+  Serial.println("rusoc");
+  if (client.connect(t_server, 80)) {
+    Serial.println("making HTTP request...");
+    // make HTTP GET request to twitter:
+    client.println("GET /rusoc/index.php HTTP/1.0");
+    //client.println("HOST: api.twitter.com");
+    client.println();
+    client.flush();
+  }
+  while (client.connected()) {
+    if (client.available()) {
+      // read incoming bytes:
+      char c = client.read();
+      Serial.print(c);
+      if (c == 10){
+        if (row >= offset) {
+          /*if (col > 10) {
+            row++;
+            col=0;
+            lcd.setCursor(col,row-offset);
+          } else {
+            lcd.print(" ");
+            col++;
+          }*/
+          lcd.print(" ");
+          col++;
+        } else {
+          row++;
+        }
+      } else {
+        if (row >= offset){
+          if ((col > 19) && (col != ' ')) {
+            row++;
+            col=0;
+            lcd.setCursor(col,row-offset);
+          }
+          if (c == '\t') {
+            lcd.print(' ');
+          } else {
+            lcd.print(c);
+          }
+          Serial.print(c);
+          Serial.print(" ");
+          Serial.println((int)c);
+          col++;
+        }
+      }
+    }
+  }
+  client.stop();
+  return 0; 
 }
   
 void help(EthernetClient client) {
