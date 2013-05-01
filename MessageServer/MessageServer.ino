@@ -17,7 +17,7 @@
 // gateway and subnet are optional:
 byte mac[] = { 
   0x90, 0xA2, 0xDA, 0x0D, 0x8B, 0x2F };
-IPAddress ip(192,168,1,33);
+IPAddress ip(192,168,1,42);
 IPAddress gateway(192,168,1,1);
 IPAddress subnet(255,255,255,0);
 
@@ -143,6 +143,8 @@ int refresh_display(int force) {
     oldtime=currtime;
     if (strcmp(message,"!nextbus") == 0) {
       return nextbus();
+    } if (strcmp(message,"!twitter") == 0) {
+      return twitter();
     } else {
       lcd.print(message); 
     }
@@ -259,6 +261,88 @@ int nextbus(){
   client.stop();
   Serial.println("done");
   return 0;
+}
+
+int twitter() {
+  EthernetClient client;
+  String tweet="", currentLine="";
+  currentLine.reserve(256);
+  tweet.reserve(150);
+  boolean readingTweet = false, finishedTweet = false;
+  Serial.println("connecting to server...");
+  IPAddress t_server(199,16,156,40); 
+  int i=0;
+  
+  if (client.connect(t_server, 80)) {
+    Serial.println("making HTTP request...");
+    // make HTTP GET request to twitter:
+    client.println("GET /1/statuses/user_timeline.xml?screen_name=wlynch92&count=1 HTTP/1.1");
+    client.println("HOST: api.twitter.com");
+    client.println();
+    client.flush();
+  }
+  while (true) {
+    if (client.connected()) {
+      if (client.available()) {
+        // read incoming bytes:
+        char inChar = client.read();
+        //Serial.print(inChar);
+        //Serial.print((int)inChar);
+        
+        // add incoming byte to end of line:
+        currentLine += inChar; 
+  
+        // if you get a newline, clear the line:
+        if (inChar == '\n') {
+          currentLine = "";
+        }
+        //Serial.println(currentLine); 
+        //Serial.println(currentLine.endsWith("<text>"));
+        
+        // if the current line ends with <text>, it will
+        // be followed by the tweet:
+        if (currentLine.equals("    <text>")) {
+          // tweet is beginning. Clear the tweet string:
+          readingTweet = true; 
+          tweet = "";
+          Serial.println("READING TWEET");
+        }
+        // if you're currently reading the bytes of a tweet,
+        // add them to the tweet String:
+        if (readingTweet) {
+          if (inChar != '<') {
+            if ((inChar != '>') || (i != 0)) {
+            tweet += inChar;
+            Serial.print(inChar);
+            if (i < 80) {
+              lcd.setCursor(i%20,i/20);
+              lcd.print(inChar);
+              i++;
+            }
+            Serial.print(" [");
+            Serial.print(tweet);
+            Serial.println("]");
+            }
+          } 
+          else {
+            // if you got a "<" char<acter,
+            // you've reached the end of the tweet:
+            readingTweet = false;
+            Serial.println("FINISHED READING TWEET");
+            Serial.println(tweet);   
+            // close the connection to the server:
+            client.stop(); 
+            break;
+          }
+        }
+      }
+    }  
+  }
+  // close the connection to the server:
+  Serial.println("\n");
+  Serial.println("Tweet:");
+  Serial.println(tweet);
+  return 0;   
 }
   
 void help(EthernetClient client) {
