@@ -125,20 +125,9 @@ char *getInput(EthernetClient client) {
 
 /* Refresh LCD display based on message */
 int refresh_display(int force) {
-  Serial.print(oldtime);
-  Serial.print(" ");
-  Serial.println(currtime);
   currtime=millis();
   /* Refresh display if timeout is met or millis timer reset */
   if ( (force != 0) ||(currtime-oldtime) >= timeout || (currtime < oldtime)) {
-    Serial.print("refreshing! ");
-    Serial.print(force);
-    Serial.print(" ");
-    Serial.print(oldtime);
-    Serial.print(" ");
-    Serial.print(currtime);
-    Serial.print(" ");
-    Serial.print(timeout);
     lcd.clear();
     oldtime=currtime;
     if (strcmp(message,"!nextbus") == 0) {
@@ -286,8 +275,6 @@ int twitter() {
       if (client.available()) {
         // read incoming bytes:
         char inChar = client.read();
-        //Serial.print(inChar);
-        //Serial.print((int)inChar);
         
         // add incoming byte to end of line:
         currentLine += inChar; 
@@ -296,8 +283,6 @@ int twitter() {
         if (inChar == '\n') {
           currentLine = "";
         }
-        //Serial.println(currentLine); 
-        //Serial.println(currentLine.endsWith("<text>"));
         
         // if the current line ends with <text>, it will
         // be followed by the tweet:
@@ -305,7 +290,6 @@ int twitter() {
           // tweet is beginning. Clear the tweet string:
           readingTweet = true; 
           tweet = "";
-          Serial.println("READING TWEET");
         }
         // if you're currently reading the bytes of a tweet,
         // add them to the tweet String:
@@ -313,23 +297,17 @@ int twitter() {
           if (inChar != '<') {
             if ((inChar != '>') || (i != 0)) {
             tweet += inChar;
-            Serial.print(inChar);
             if (i < 80) {
               lcd.setCursor(i%20,i/20);
               lcd.print(inChar);
               i++;
             }
-            Serial.print(" [");
-            Serial.print(tweet);
-            Serial.println("]");
             }
           } 
           else {
             // if you got a "<" char<acter,
             // you've reached the end of the tweet:
             readingTweet = false;
-            Serial.println("FINISHED READING TWEET");
-            Serial.println(tweet);   
             // close the connection to the server:
             client.stop(); 
             break;
@@ -339,9 +317,6 @@ int twitter() {
     }  
   }
   // close the connection to the server:
-  Serial.println("\n");
-  Serial.println("Tweet:");
-  Serial.println(tweet);
   return 0;   
 }
   
