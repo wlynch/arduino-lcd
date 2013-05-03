@@ -15,9 +15,8 @@ To Do
 - [x] Enable display to show messages
 
 - [x] Integrate NextBus
+- [ ] Add additional services (twitter, email, etc)?
 
+- [ ] WiFi
 
 - Possible alternative: Swap arduino w/ pi?
-
--Hi
-

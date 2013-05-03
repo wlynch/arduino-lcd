@@ -17,10 +17,14 @@
 // gateway and subnet are optional:
 byte mac[] = { 
   0x90, 0xA2, 0xDA, 0x0D, 0x8B, 0x2F };
+/*
 IPAddress ip(192,168,1,49);
 IPAddress gateway(192,168,1,1);
 IPAddress subnet(255,255,255,0);
-
+*/
+IPAddress ip(172,16,6,72);
+IPAddress gateway(172,16,6,65);
+IPAddress subnet(255,255,255,224);
 // telnet defaults to port 23
 EthernetServer server(23);
 
@@ -215,7 +219,6 @@ int nextbus(){
   //   if there are incoming bytes available 
   // from the server, read them and print them:
   int i=0, offset=10, row=0, col=0;
-  Serial.println(client.available());
   if (client.available()) {
     while (client.connected()) {
       char c=client.read();
@@ -326,7 +329,6 @@ int rusoc() {
   EthernetClient client;
   IPAddress t_server(165,230,205,70); 
   int i=0, offset=8, row=0, col=0;
-  Serial.println("rusoc");
   if (client.connect(t_server, 80)) {
     Serial.println("making HTTP request...");
     // make HTTP GET request to twitter:
@@ -339,17 +341,8 @@ int rusoc() {
     if (client.available()) {
       // read incoming bytes:
       char c = client.read();
-      Serial.print(c);
       if (c == 10){
         if (row >= offset) {
-          /*if (col > 10) {
-            row++;
-            col=0;
-            lcd.setCursor(col,row-offset);
-          } else {
-            lcd.print(" ");
-            col++;
-          }*/
           lcd.print(" ");
           col++;
         } else {
@@ -362,14 +355,7 @@ int rusoc() {
             col=0;
             lcd.setCursor(col,row-offset);
           }
-          if (c == '\t') {
-            lcd.print(' ');
-          } else {
-            lcd.print(c);
-          }
-          Serial.print(c);
-          Serial.print(" ");
-          Serial.println((int)c);
+          lcd.print(c);
           col++;
         }
       }
