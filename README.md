@@ -15,8 +15,8 @@ Components
 Method
 ------
 For this project, we decided to take 2 different approaches to address how the arduino should interact with a user. In one approach, the arduino acts as an interactive server, reading from and writting to a client. In the other, we allow a supplementary web server to handle user interaction and then fowarded parsed requests to the arduino. You can find these different implementations here:
-- [Arduino server](https://github.com/wlynch92/arduino-lcd/arduino-server)
-- [Web server](https://github.com/wlynch92/arduino-lcd/web-server)
+- [Arduino server](https://github.com/wlynch92/arduino-lcd/tree/master/arduino-server)
+- [Web server](https://github.com/wlynch92/arduino-lcd/tree/master/web-server)
 
 Results
 -------
