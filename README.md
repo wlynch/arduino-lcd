@@ -4,22 +4,6 @@ Arduino Display
 
 Overview
 --------
-<<<<<<< HEAD
-- [x] HelloWorld
-- [x] Echo Server
-- [x] Get server to recognize commands
-- [x] Get server to store a persistent message across sessions
-- [x] Enable some sort of authentication system (even if very simple)
-
-- [x] Enable display to show messages
-
-- [x] Integrate NextBus
-
-
-- Possible alternative: Swap arduino w/ pi?
-
-- Hi my name is robert
-=======
 This project uses an arduino and an LCD character display in order to display messages specified by a remote client.
 
 Components
@@ -40,5 +24,5 @@ Results
 
 Final Thoughts
 --------------
->>>>>>> 7f2e59797a733ca29e6d7eba3141fbe4cd454788
+
 
