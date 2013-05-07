@@ -24,5 +24,12 @@ Results
 
 Final Thoughts
 --------------
+Future Work, Extensions: 
+- more use of third-party api's
+- casing design
 
+Pitfalls and Snags: 
+- Rutgers' network problems
 
+Recommendations: 
+- test at home
