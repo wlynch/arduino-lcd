@@ -1,6 +1,6 @@
 Server as Middle Man
-
 ====================
+
 Software/Hardware Resources: 
 ----------------------------
 - node.js/express server hosted on heroku (trial acount)
