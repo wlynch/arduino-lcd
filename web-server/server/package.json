@@ -1,0 +1,13 @@
+{
+	"name": "message-server",
+	"version": "0.0.1",
+	"dependencies": {
+		"pg": "0.6.15",
+		"express": "2.5.x",
+		"twilio": "*"
+	},
+	"engines": {
+		"node": "0.8.x",
+		"npm": "1.1.x"
+	}
+}

@@ -1,0 +1,9 @@
+Web page documenting project:
+
+Overview: who you are, what you worked on
+
+Method: key software and hardware resources, final design for your system
+
+Results: qualitative (pictures, videos, descriptions), quantitative (if you ahve them and it makes sense)
+
+Final thougts: future work and extensions, pitfalls and snags, things you'd do differently next time
