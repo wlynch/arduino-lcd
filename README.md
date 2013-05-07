@@ -20,7 +20,7 @@ For this project, we decided to take 2 different approaches to address how the a
 
 Results
 -------
-<insert images here>
+![Demo](https://pbs.twimg.com/media/BEZQvwJCUAA54Cu.jpg)
 
 Final Thoughts
 --------------
