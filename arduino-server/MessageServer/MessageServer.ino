@@ -17,10 +17,14 @@
 // gateway and subnet are optional:
 byte mac[] = { 
   0x90, 0xA2, 0xDA, 0x0D, 0x8B, 0x2F };
-IPAddress ip(192,168,1,33);
+/*
+IPAddress ip(192,168,1,49);
 IPAddress gateway(192,168,1,1);
 IPAddress subnet(255,255,255,0);
-
+*/
+IPAddress ip(172,16,6,72);
+IPAddress gateway(172,16,6,65);
+IPAddress subnet(255,255,255,224);
 // telnet defaults to port 23
 EthernetServer server(23);
 
@@ -129,12 +133,16 @@ int refresh_display(int force) {
   /* Refresh display if timeout is met or millis timer reset */
   if ( (force != 0) ||(currtime-oldtime) >= timeout || (currtime < oldtime)) {
     lcd.clear();
+    oldtime=currtime;
     if (strcmp(message,"!nextbus") == 0) {
       return nextbus();
+    } if (strcmp(message,"!twitter") == 0) {
+      return twitter();
+    } if (strcmp(message,"!rusoc") == 0) {
+      return rusoc();
     } else {
       lcd.print(message); 
     }
-    oldtime=currtime;
   }
   return 0;
 }
@@ -211,14 +219,13 @@ int nextbus(){
   //   if there are incoming bytes available 
   // from the server, read them and print them:
   int i=0, offset=10, row=0, col=0;
-  Serial.println(client.available());
   if (client.available()) {
     while (client.connected()) {
       char c=client.read();
       
       if (c == 10){
         if (row >= offset) {
-          if (col > 10) {
+          if (col > 0) {
             row++;
             col=0;
             lcd.setCursor(col,row-offset);
@@ -248,6 +255,114 @@ int nextbus(){
   client.stop();
   Serial.println("done");
   return 0;
+}
+
+int twitter() {
+  EthernetClient client;
+  String tweet="", currentLine="";
+  currentLine.reserve(256);
+  tweet.reserve(150);
+  boolean readingTweet = false, finishedTweet = false;
+  Serial.println("connecting to server...");
+  IPAddress t_server(199,16,156,40); 
+  int i=0;
+  
+  if (client.connect(t_server, 80)) {
+    Serial.println("making HTTP request...");
+    // make HTTP GET request to twitter:
+    client.println("GET /1/statuses/user_timeline.xml?screen_name=wlynch92&count=1 HTTP/1.1");
+    client.println("HOST: api.twitter.com");
+    client.println();
+    client.flush();
+  }
+  while (true) {
+    if (client.connected()) {
+      if (client.available()) {
+        // read incoming bytes:
+        char inChar = client.read();
+        
+        // add incoming byte to end of line:
+        currentLine += inChar; 
+  
+        // if you get a newline, clear the line:
+        if (inChar == '\n') {
+          currentLine = "";
+        }
+        
+        // if the current line ends with <text>, it will
+        // be followed by the tweet:
+        if (currentLine.equals("    <text>")) {
+          // tweet is beginning. Clear the tweet string:
+          readingTweet = true; 
+          tweet = "";
+        }
+        // if you're currently reading the bytes of a tweet,
+        // add them to the tweet String:
+        if (readingTweet) {
+          if (inChar != '<') {
+            if ((inChar != '>') || (i != 0)) {
+              tweet += inChar;
+              if (i < 80) {
+                lcd.setCursor(i%20,i/20);
+                lcd.print(inChar);
+                i++;
+              }
+            }
+          } 
+          else {
+            // if you got a "<" char<acter,
+            // you've reached the end of the tweet:
+            readingTweet = false;
+            // close the connection to the server:
+            client.stop(); 
+            break;
+          }
+        }
+      }
+    }  
+  }
+  // close the connection to the server:
+  return 0;   
+}
+
+int rusoc() {
+  EthernetClient client;
+  IPAddress t_server(165,230,205,70); 
+  int i=0, offset=8, row=0, col=0;
+  if (client.connect(t_server, 80)) {
+    Serial.println("making HTTP request...");
+    // make HTTP GET request to twitter:
+    client.println("GET /rusoc/index.php HTTP/1.0");
+    //client.println("HOST: api.twitter.com");
+    client.println();
+    client.flush();
+  }
+  while (client.connected()) {
+    if (client.available()) {
+      // read incoming bytes:
+      char c = client.read();
+      if (c == 10){
+        if (row >= offset) {
+          lcd.print(" ");
+          col++;
+        } else {
+          row++;
+        }
+      } else {
+        if (row >= offset){
+          if ((col > 19) && (col != ' ')) {
+            row++;
+            col=0;
+            lcd.setCursor(col,row-offset);
+          }
+          lcd.print(c);
+          col++;
+        }
+      }
+    }
+  }
+  client.stop();
+  return 0; 
 }
   
 void help(EthernetClient client) {
